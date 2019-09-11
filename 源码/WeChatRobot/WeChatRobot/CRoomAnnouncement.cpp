@@ -11,7 +11,7 @@
 struct ChatRoomMessageStruct
 {
 	wchar_t chatroomwxid[40];
-	wchar_t chatroommsg[MAX_PATH];
+	wchar_t chatroommsg[MAX_PATH * 20];
 };
 
 // CRoomAnnouncement 对话框

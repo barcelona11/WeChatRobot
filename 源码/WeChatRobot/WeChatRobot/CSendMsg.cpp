@@ -16,7 +16,7 @@
 struct MessageStruct
 {
 	wchar_t wxid[40];
-	wchar_t content[MAX_PATH];
+	wchar_t content[MAX_PATH * 20];
 };
 
 

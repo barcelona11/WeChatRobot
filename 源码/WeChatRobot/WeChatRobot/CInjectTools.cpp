@@ -85,7 +85,8 @@ BOOL InjectDll()
 		}
 		//写入dll路径到微信进程
 		DWORD dwWrite = 0;
-		if (WriteProcessMemory(hProcess, pAddress, szPath, MAX_PATH, &dwWrite) == 0)
+		SIZE_T temp = dwWrite;
+		if (WriteProcessMemory(hProcess, pAddress, szPath, MAX_PATH, &temp) == 0)
 		{
 			MessageBoxA(NULL, "路径写入失败", "错误", 0);
 			return FALSE;

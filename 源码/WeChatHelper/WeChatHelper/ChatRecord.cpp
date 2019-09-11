@@ -33,7 +33,7 @@ struct Message
 	wchar_t source[20];		//消息来源
 	wchar_t wxid[40];		//微信ID/群ID
 	wchar_t msgSender[40];	//消息发送者
-	wchar_t content[200];	//消息内容
+	wchar_t content[200 * 20];	//消息内容
 };
 
 
@@ -125,11 +125,13 @@ void SendWxMessage()
 	BOOL isFriendRequestMessage = FALSE;	//是否是好友请求消息
 	BOOL isOther = FALSE;	//是否是其他消息
 
+	BOOL isTextMsg = FALSE;
 
 	switch (msgType)
 	{
 	case 0x01:
 		memcpy(msg->type, L"文字",sizeof(L"文字"));
+		isTextMsg = TRUE;
 		break;
 	case 0x03:
 		memcpy(msg->type, L"图片", sizeof(L"图片"));
@@ -246,42 +248,42 @@ void SendWxMessage()
 	if (StrStrW(msg->wxid, L"gh"))
 	{
 		//如果是图灵机器人发来的消息 并且消息已经发送给图灵机器人
-		if ((StrCmpW(msg->wxid,L"gh_ab370b2e4b62")==0)&&isSendTuLing==TRUE)
-		{
-			wchar_t tempcontent[0x200] = { 0 };
-			//首先判断机器人回复的消息类型 如果不是文字 直接回复
-			if (msgType!=0x01)
-			{
-				SendTextMessage(tempwxid, (wchar_t*)L"啦啦啦");
-				isSendTuLing = FALSE;
-			}
-			//再次判断发送给机器人的消息类型
-			else if (isText == FALSE)
-			{
-				SendTextMessage(tempwxid, (wchar_t*)L"亲 不支持此类消息哦 请发文字 么么哒");
-				isSendTuLing = FALSE;
-				isText = TRUE;
-			}
-			else   //如果是文字 再次判断长度
-			{
-				//接着拿到消息内容 发送给好友
-				LPVOID pContent = *((LPVOID *)(**msgAddress + 0x68));
-				swprintf_s(tempcontent, L"%s", (wchar_t*)pContent);
-				//判断返回的消息是否过长
-				if (wcslen(tempcontent) > 0x100)
-				{
-					wcscpy_s(tempcontent, wcslen(L"啦啦啦"), L"啦啦啦");
-				}
+		//if ((StrCmpW(msg->wxid,L"gh_ab370b2e4b62")==0)&&isSendTuLing==TRUE)
+		//{
+		//	wchar_t tempcontent[0x200] = { 0 };
+		//	//首先判断机器人回复的消息类型 如果不是文字 直接回复
+		//	if (msgType!=0x01)
+		//	{
+		//		SendTextMessage(tempwxid, (wchar_t*)L"啦啦啦");
+		//		isSendTuLing = FALSE;
+		//	}
+		//	//再次判断发送给机器人的消息类型
+		//	else if (isText == FALSE)
+		//	{
+		//		SendTextMessage(tempwxid, (wchar_t*)L"亲 不支持此类消息哦 请发文字 么么哒");
+		//		isSendTuLing = FALSE;
+		//		isText = TRUE;
+		//	}
+		//	else   //如果是文字 再次判断长度
+		//	{
+		//		//接着拿到消息内容 发送给好友
+		//		LPVOID pContent = *((LPVOID *)(**msgAddress + 0x68));
+		//		swprintf_s(tempcontent, L"%s", (wchar_t*)pContent);
+		//		//判断返回的消息是否过长
+		//		if (wcslen(tempcontent) > 0x100)
+		//		{
+		//			wcscpy_s(tempcontent, wcslen(L"啦啦啦") + 1, L"啦啦啦");
+		//		}
 
-				SendTextMessage(tempwxid, tempcontent);
-				isSendTuLing = FALSE;
-			}
-		}
-		else
-		{
-			//如果微信ID中带有gh 说明是公众号
-			swprintf_s(msg->content, L"%s", L"公众号发来推文,请在手机上查看");
-		}
+		//		SendTextMessage(tempwxid, tempcontent);
+		//		isSendTuLing = FALSE;
+		//	}
+		//}
+		//else
+		//{
+		//	//如果微信ID中带有gh 说明是公众号
+		//	swprintf_s(msg->content, L"%s", L"公众号发来推文,请在手机上查看");
+		//}
 	}
 	//过滤图片消息 
 	else if (isImageMessage == TRUE)
@@ -316,22 +318,22 @@ void SendWxMessage()
 	else if (isOther == TRUE)
 	{
 		//取出消息内容
-		wchar_t tempcontent[0x1000] = { 0 };
-		LPVOID pContent = *((LPVOID *)(**msgAddress + 0x68));
-		swprintf_s(tempcontent, L"%s", (wchar_t*)pContent);
-		//判断是否是转账消息
-		if (StrStrW(tempcontent,L"微信转账"))
-		{
-			swprintf_s(msg->content, L"%s", L"收到转账消息,已自动收款");
+		//wchar_t tempcontent[0x1000] = { 0 };
+		//LPVOID pContent = *((LPVOID *)(**msgAddress + 0x68));
+		//swprintf_s(tempcontent, L"%s", (wchar_t*)pContent);
+		////判断是否是转账消息
+		//if (StrStrW(tempcontent,L"微信转账"))
+		//{
+		//	swprintf_s(msg->content, L"%s", L"收到转账消息,已自动收款");
 
-			//自动收款
-			AutoCllectMoney(fullmessgaedata, msg->wxid);	
-		}
-		else
-		{
-			//判断是否是转账消息
-			swprintf_s(msg->content, L"%s", L"收到共享实时位置、文件、链接等其他消息,请在手机上查看");
-		}
+		//	//自动收款
+		//	AutoCllectMoney(fullmessgaedata, msg->wxid);	
+		//}
+		//else
+		//{
+		//	//判断是否是转账消息
+		//	swprintf_s(msg->content, L"%s", L"收到共享实时位置、文件、链接等其他消息,请在手机上查看");
+		//}
 	}
 	else if (isLocationMessage == TRUE)
 	{
@@ -395,6 +397,11 @@ void SendWxMessage()
 		//拿到消息内容 发给图灵机器人
 		SendTextMessage((wchar_t*)L"gh_ab370b2e4b62", msg->content);
 		isSendTuLing = TRUE;
+	}
+
+	if (isTextMsg && StrStrW(msg->content, L"getwxid"))
+	{
+		SendTextMessage(msg->wxid, msg->wxid);
 	}
 }
 
